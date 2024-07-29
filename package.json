@@ -1,0 +1,22 @@
+{
+  "name": "@faddys/producer",
+  "version": "1.0.0",
+  "description": "Faddy's Music Producer",
+  "bin": {
+    "producer": "./README.md",
+    "producer-directory": "./directory.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FaddysStudio/Producer.git"
+  },
+  "author": "Faddy Michel <faddy@faddys.io>",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/FaddysStudio/Producer/issues"
+  },
+  "homepage": "https://github.com/FaddysStudio/Producer#readme",
+  "dependencies": {
+    "@faddys/scenarist": "^2.2.0"
+  }
+}

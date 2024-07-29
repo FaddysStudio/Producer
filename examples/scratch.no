@@ -1,0 +1,10 @@
+
+~ 105 4
+
+o examples/
+
+$ countdown 0/4 clap/1 1/4 clap/2 2/4 clap/3 3/4 clap/4
+
+| $ maqsum 0/8 dom/01 1/8 tak/04 3/8 tak/07 4/8 dom/12 6/8 tak/06
+
+| 0/4 sak/00 1/4 sak/08 2/4 sak/16 3/4 sak/23
