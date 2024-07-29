@@ -1,6 +1,6 @@
 {
   "name": "@faddys/producer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Faddy's Music Producer",
   "bin": {
     "producer": "./README.md",
