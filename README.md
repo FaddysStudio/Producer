@@ -6,6 +6,12 @@ Work of Faddy Michel
 
 In Solidarity with The People of Palestine till Their Whole Land is FREE
 
+## Prerequisites
+
+* [Node.js](https://nodejs.org)
+* [npm](https://npmjs.org)
+* [Csound](https://csound.com)
+
 ## Installation
 
 ```sh
@@ -15,7 +21,7 @@ sudo npm i -g @faddys/producer
 ## Usage
 
 ```sh
-producer notation
+producer [ notation ]
 ```
 
 ## `.FaddysProducer`
@@ -60,40 +66,42 @@ ksmps = 32
 nchnls = 6
 0dbfs = 1
 
-instr 13, beat
+instr 13, 14, beat
 
-iRate init 1 / abs ( p3 )
 p3 *= 1000
-SNote strget p4
-strset p5, SNote
+SPath strget p4
+strset p5, SPath
 
-kLoop metro iRate
+iEvent init ( int ( p1 ) % 10 ) + frac ( p1 )
+
+kLoop metro 1/p3
 
 if kLoop == 1 then
 
-schedulek 9 + frac ( p1 ), 0, 1, p5, p6, p7
+schedulek iEvent, 0, 1, p5, p6, p7
 
 endif
 
 endin
 
-instr 9, playback
+instr 3, playback
 
-SNote strget p4
-p3 filelen SNote
+SPath strget p4
+p3 filelen SPath
 
-aLeft, aRight diskin2 SNote
+aLeft, aRight diskin2 SPath
 
 outs aLeft / ( p5 + 1 ), aRight / ( p6 + 1 )
 
 endin
 
-instr 4, record
+instr 4, recorder
 
 SPath strget p4
-SPath1 strcat SPath, "_1.wav"
-SPath2 strcat SPath, "_2.wav"
-SPath3 strcat SPath, "_3.wav"
+
+SPath1 strcat SPath, ".1.2.wav"
+SPath2 strcat SPath, ".3.4.wav"
+SPath3 strcat SPath, ".5.6.wav"
 
 aLeft1, aRight1 inch 1, 2
 aLeft2, aRight2 inch 3, 4
@@ -120,10 +128,10 @@ endin
 ?# cd .FaddysProducer ; if [ ! -d node_modules/@faddys/command ] ; then npm i @faddys/command ; fi
 ```
 
-### `.FaddysProducer/index.mjs`
+### `.FaddysProducer/score.mjs`
 
 ```roll
-?# cat - > .FaddysProducer/index.mjs
+?# cat - > .FaddysProducer/score.mjs
 ```
 
 ```js
@@ -273,9 +281,9 @@ this .push ( `i 4.${ this .record [ path ] = this .instance () } 0 -1 "${ path }
 ```
 
 ```roll
-?# $ node .FaddysProducer/index.mjs > .FaddysProducer/index.sco
+?# $ node .FaddysProducer/score.mjs > .FaddysProducer/index.sco
 ```
 
 ```roll
-?# -1 csound -iadc -odac .FaddysProducer/index.orc .FaddysProducer/index.sco
+?# -1 -2 csound -iadc -odac .FaddysProducer/index.*
 ```
