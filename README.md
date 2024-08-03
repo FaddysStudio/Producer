@@ -1,6 +1,6 @@
 #!/usr/bin/env roll
 
-# Faddy's Music Producer
+## Faddy's Disableton; Command-Line Music Production Tool
 
 Work of Faddy Michel
 
@@ -15,31 +15,31 @@ In Solidarity with The People of Palestine till Their Whole Land is FREE
 ## Installation
 
 ```sh
-sudo npm i -g @faddys/producer
+sudo npm i -g disableton
 ```
 
 ## Usage
 
 ```sh
-producer [ notation ]
+disableton [ ... notation ]
 ```
 
-## `.FaddysProducer`
+## `.dsbltn`
 
 ```roll
-?# if [ ! -d .FaddysProducer ] ; then mkdir .FaddysProducer ; fi
+?# if [ ! -d .dsbltn ] ; then mkdir .dsbltn ; fi
 ```
 
-## `.FaddysProducer/examples/`
+## `.dsbltn/examples/`
 
 ```roll
-?# cd .FaddysProducer ; if [ ! -d examples ] ; then mkdir examples ; fi
+?# cd .dsbltn ; if [ ! -d examples ] ; then mkdir examples ; fi
 ```
 
-### `.FaddysProducer/examples/maqsum.no`
+### `.dsbltn/examples/maqsum.no`
 
 ```roll
-?# cd .FaddysProducer/examples ; cat - > maqsum.no
+?# cd .dsbltn/examples ; cat - > maqsum.no
 ```
 
 ```
@@ -52,10 +52,10 @@ producer [ notation ]
 -==
 ```
 
-### `.FaddysProducer/index.orc`
+### `.dsbltn/index.orc`
 
 ```roll
-?# cd .FaddysProducer ; if [ ! -f index.orc ] ; then cat - > index.orc ; fi
+?# cd .dsbltn ; if [ ! -f index.orc ] ; then cat - > index.orc ; fi
 ```
 
 ```csound
@@ -116,22 +116,22 @@ endin
 //-==
 ```
 
-### `.FaddysProducer/node_modules/@faddys/scenarist`
+### `.dsbltn/node_modules/@faddys/scenarist`
 
 ```roll
-?# cd .FaddysProducer ; if [ ! -d node_modules/@faddys/scenarist ] ; then npm i @faddys/scenarist ; fi
+?# cd .dsbltn ; if [ ! -d node_modules/@faddys/scenarist ] ; then npm i @faddys/scenarist ; fi
 ```
 
-### `.FaddysProducer/node_modules/@faddys/command`
+### `.dsbltn/node_modules/@faddys/command`
 
 ```roll
-?# cd .FaddysProducer ; if [ ! -d node_modules/@faddys/command ] ; then npm i @faddys/command ; fi
+?# cd .dsbltn ; if [ ! -d node_modules/@faddys/command ] ; then npm i @faddys/command ; fi
 ```
 
-### `.FaddysProducer/score.mjs`
+### `.dsbltn/index.mjs`
 
 ```roll
-?# cat - > .FaddysProducer/score.mjs
+?# cat - > .dsbltn/index.mjs
 ```
 
 ```js
@@ -139,19 +139,64 @@ endin
 
 import Scenarist from '@faddys/scenarist';
 import $0 from '@faddys/command';
+import { createInterface } from 'node:readline';
+import { stdin as input, stdout as output } from 'node:process';
+import Note from './note.mjs';
+import File from './file.mjs';
 
-await Scenarist ( new class extends Array {
+await Scenarist ( new class Disableton {
 
-async $_producer ( $ ) {
+#argv
 
-try {
+constructor ( ... argv ) { this .#argv = argv }
 
-const directory = this .directory = await $0 ( 'producer-directory' )
+static directory = $0 ( '_dsbdir' )
 .then ( $ => $ ( Symbol .for ( 'output' ) ) )
 .then ( ( [ directory ] ) => directory );
+
+#player
+#location
+#interface
+
+async $_producer ( $, { player, location } ) {
+
+this .#player = player;
+this .#location = location;
+
+await $ ( Symbol .for ( 'list' ) );
+
+if ( this .#argv .length )
+await $ ( ... this .#argv );
+
+if ( this .#player ) {
+
+await this .#player ( Symbol .for ( 'write' ), location [ location .length - 1 ], 'dsbltn ' + location [ location .length - 1 ] );
+
+return;
+
+}
+
+console .log ( "Hello! This is Faddy's Disableton; Music Production Tool!" );
+
 const argv = process .argv .slice ( 2 );
 
-if ( argv .length ) {
+if ( argv .length )
+await $ ( ... argv );
+
+this .#interface = createInterface ( { input, output } )
+.on ( 'line', line => $ (  ... line .trim () .split ( /\s+/ ) )
+.then ( output => ( [ 'string', 'number', 'boolean' ] .includes ( typeof output ) ? console .log ( output ) : undefined ) )
+.catch ( error => console .error ( error ?.message || error ) )
+.finally ( () => this .#interface .prompt () ) );
+
+this .#interface .prompt ();
+
+}
+
+async $score ( $, ... argv ) {
+
+if ( ! argv .length )
+return;
 
 const notation = await $0 ( 'cat', argv .shift () )
 .then ( async $ => ( {
@@ -168,122 +213,151 @@ for ( let line of notation .output )
 if ( ( line = line .trim () ) .length )
 await $ ( ... line .split ( /\s+/ ) );
 
-await $ ( '|' );
+}
 
-console .log ( this .map ( note => ( typeof note === 'object' ? this .note ( note ) : note ) ) .join ( '\n' ) );
+async $write () {
+
+const score = await $0 ( 'cat - > .dsbltn/index.sco' );
+
+for ( const note of this )
+await score ( typeof note === 'object' ? this .note ( note ) : note );
+
+await score ( Symbol .for ( 'end' ) );
 
 }
 
-} catch ( error ) {
+#engine
 
-console .error ( '#error', error ?.message || error );
+async $play () {
 
-}
-
-}
-
-[ '$~' ] ( $, tempo, bar, ... argv ) {
-
-this .push ( `t 0 ${ this .tempo = tempo }`,
-`v ${ this .bar = bar }` );
-
-return $ ( ... argv );
+this .#engine = await $0 ( 'csound -odac .dsbltn/index.orc .dsbltn/sco' );
 
 }
 
-time = 0;
+static tempo = 105
+#tempo
 
-[ '$|' ] ( $, ... argv ) {
-
-return this .push ( `b ${ ++this .time * this .bar }` ), $ ( ... argv );
-
-}
-
-$$ ( $, label, ... argv ) {
-
-this .label = label;
-this [ label ] = [];
-this [ '$' + label ] = ( $, ... argv ) => {
-
-this .push ( ... this [ label ] );
-
-return $ ( ... argv );
-
-};
-
-return $ ( ... argv );
-
-}
-
-left = 3;
-right =3;
-
-[ '$=' ] ( $, left, right, ... argv ) {
-
-Object .assign ( this, { left, right } );
-
-return $ ( ... argv );
-
-}
-
-#instance = 0
-instance () { return ++this .#instance % 10 === 0 ? ++this .#instance : this .#instance }
-
-$_director ( $, ... argv ) {
+async $tempo ( $, ... argv ) {
 
 if ( ! argv .length )
-return this .label;
+return this .#tempo || ( this .#player ? await this .#player ( 'tempo' ) : Disableton .tempo );
 
-const [ step, divisions ] = argv .shift () .split ( '/' );
-const sound = argv .shift ();
-const { time } = this;
-const note = { step, divisions, sound, time };
+this .#tempo = parseFloat ( argv .shift () );
 
-this .push ( note );
+if ( isNaN ( this .#tempo ) ) {
 
-if ( this .label ?.length )
-this [ this .label ] .push ( note );
+$ ( Symbol .for ( 'write' ), 'tempo', 'tempo ' + ( this .#tempo = await this .#player ( 'tempo' ) ) );
 
-return $ ( ... argv );
+throw `Tempo is set to a non-numeric value. Instead, it's reset to it's player tempo ${ this .#tempo }`;
 
 }
 
-note ( { step, divisions, sound, time } ) {
+$ ( Symbol .for ( 'write' ), 'tempo', 'tempo ' + this .#tempo );
 
-const instance = this .instance ();
-
-return [
-
-'i',
-`13.${ instance }`,
-`[${ step }/${ divisions }]`,
-time === this .time - 1 ? this .time : -this .time,
-`"${ this .directory }/equipment/${ sound }.wav"`,
-instance,
-this .left,
-this .right
-
-] .join ( ' ' );
+return ! argv .length ? this .#tempo : $ ( ... argv );
 
 }
 
-record = {}
+$dsbltn = Disableton
 
- $o ( $, path ) {
+$note = Note
 
-this .push ( `i 4.${ this .record [ path ] = this .instance () } 0 -1 "${ path }"` );
-
-}
+$_director = new File
 
 } );
 
 //-==
 ```
 
+### `.dsbltn/note.mjs`
+
 ```roll
-?# $ node .FaddysProducer/score.mjs > .FaddysProducer/index.sco
+?# cat - > .dsbltn/note.mjs
+```
+
+```js
+//+==
+
+export default class Note {
+
+static instance = 0
+#instance
+
+constructor ( ... argv ) {
+
+this .#instance = ++Note .instance % 10 === 0 ? ++Note .instance : Note .instance;
+
+}
+
+#record = false
+
+$record ( $, ... argv ) { return this .#record = true, $ ( ... argv ) }
+$playback ( $, ... argv ) { return this .#record = false, $ ( ... argv ) }
+
+async $score ( $ ) {
+
+return `i ${ this .#record ? 14 : 13 }.${ this .#instance } `;
+// ${ await $ ( 'time' ) } 1 "${ this .#path }" ${ this .#left } ${ this .#right }`;
+
+}
+
+};
+
+//-==
+```
+
+### `.dsbltn/file.mjs`
+
+```roll
+?# cat - > .dsbltn/file.mjs
+```
+
+```js
+//+==
+
+import {
+
+mkdir as make,
+readdir as list,
+readFile as read,
+writeFile as write
+
+} from 'node:fs/promises';
+
+export default class File {
+
+async $_producer ( $, { player, location } ) {
+
+this .player = player;
+
+await make ( this .$directory = [ ... location .slice ( 0, -1 ), '.dsbltn/.data' ] .join ( '/' ) + '/', { recursive: true } );
+
+}
+
+async $_list ( $ ) {
+
+for ( const direction of await list ( this .$directory ) )
+$ ( Symbol .for ( 'read' ), direction );
+
+}
+
+async $_read ( $, direction ) {
+
+await this .player ( ... ( await read ( this .$directory + direction, 'utf8' ) ) .trim () .split ( /\s+/ ) );
+
+}
+
+$_write ( $, direction, value ) {
+
+return write ( this .$directory + direction, value, 'utf8' );
+
+}
+
+};
+
+//-==
 ```
 
 ```roll
-?# -1 -2 csound -iadc -odac .FaddysProducer/index.*
+?# $ =0 node .dsbltn/index.mjs
 ```
