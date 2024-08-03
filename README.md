@@ -170,7 +170,7 @@ await $ ( ... this .#argv );
 
 if ( this .#player ) {
 
-await this .#player ( Symbol .for ( 'write' ), location [ location .length - 1 ], 'dsbltn ' + location [ location .length - 1 ] );
+await this .#player ( Symbol .for ( 'write' ), 'dsbltn/' + location [ location .length - 1 ] );
 
 return;
 
@@ -246,13 +246,13 @@ this .#tempo = parseFloat ( argv .shift () );
 
 if ( isNaN ( this .#tempo ) ) {
 
-$ ( Symbol .for ( 'write' ), 'tempo', 'tempo ' + ( this .#tempo = await this .#player ( 'tempo' ) ) );
+await $ ( Symbol .for ( 'write' ), 'tempo', this .#tempo = await this .#player ( 'tempo' ) );
 
 throw `Tempo is set to a non-numeric value. Instead, it's reset to it's player tempo ${ this .#tempo }`;
 
 }
 
-$ ( Symbol .for ( 'write' ), 'tempo', 'tempo ' + this .#tempo );
+$ ( Symbol .for ( 'write' ), 'tempo', this .#tempo );
 
 return ! argv .length ? this .#tempo : $ ( ... argv );
 
@@ -330,26 +330,30 @@ async $_producer ( $, { player, location } ) {
 
 this .player = player;
 
-await make ( this .$directory = [ ... location .slice ( 0, -1 ), '.dsbltn/.data' ] .join ( '/' ) + '/', { recursive: true } );
+this .$directory = [ ... location .slice ( 0, -1 ), '.dsbltn/.data/' ] .join ( '/' );
+
+await make ( this .$directory + 'dsbltn', { recursive: true } );
+await make ( this .$directory + 'note', { recursive: true } );
 
 }
 
 async $_list ( $ ) {
 
-for ( const direction of await list ( this .$directory ) )
+for ( const direction of await list ( this .$directory, { recursive: true } ) )
+if ( ! [ 'dsbltn', 'note' ] .includes ( direction ) )
 $ ( Symbol .for ( 'read' ), direction );
 
 }
 
 async $_read ( $, direction ) {
 
-await this .player ( ... ( await read ( this .$directory + direction, 'utf8' ) ) .trim () .split ( /\s+/ ) );
+await this .player ( ... direction .split ( '/' ), await read ( this .$directory + direction, 'utf8' ) );
 
 }
 
-$_write ( $, direction, value ) {
+$_write ( $, direction, value = '' ) {
 
-return write ( this .$directory + direction, value, 'utf8' );
+return write ( this .$directory + direction, typeof value === 'string' ? value : value .toString (), 'utf8' );
 
 }
 
